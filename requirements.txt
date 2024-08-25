@@ -1,0 +1,8 @@
+requests
+python-dotenv
+beautifulsoup4
+langchain-core
+langchain-google-genai
+langchain-astradb
+langchain-tools
+langchain-agents
