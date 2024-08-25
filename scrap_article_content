@@ -1,0 +1,38 @@
+import os
+import requests
+from dotenv import load_dotenv
+from langchain_core.documents import Document
+from bs4 import BeautifulSoup
+
+load_dotenv()
+
+def fetch_url(topic, headline):
+    #https://www.context.news/climate-risks/long-read/we-all-need-water-panamas-canal-and-people-thirst-for-more
+    url = f"https://www.context.news/{topic}/long-read/{headline}"
+    return url
+
+def fetch_news(url):
+    response = requests.get(url)
+    docs = []
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        paragraphs = soup.find_all('p')
+        article_text = ' '.join([para.get_text() for para in paragraphs])
+        
+        title = soup.title.string if soup.title else 'No title'
+        author_tag = soup.find('a', class_='LinkWrapper_linkWrapper__DpMdK')
+        author = author_tag.get_text(strip=True) if author_tag else 'No author found'
+        
+        metadata = {
+            "url": url,
+            "title": title,
+            "author_name": author, 
+        }
+        
+        doc = Document(page_content=article_text, metadata=metadata)   
+        docs.append(doc)
+        return docs
+        #data = response.json()
+    else:
+        print("Failed with status code:", response.status_code)
+        return []
