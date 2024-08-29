@@ -6,3 +6,4 @@ langchain-google-genai
 langchain-astradb
 langchain-tools
 langchain-agents
+flask

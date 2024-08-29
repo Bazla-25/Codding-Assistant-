@@ -7,26 +7,36 @@ from bs4 import BeautifulSoup
 load_dotenv()
 
 def fetch_url(topic, headline):
-    #https://www.context.news/climate-risks/long-read/we-all-need-water-panamas-canal-and-people-thirst-for-more
+
     url = f"https://www.context.news/{topic}/long-read/{headline}"
+    if topic.lower() == "sport":
+        url = f"https://www.bbc.com/sport/{headline}/articles/cgq2g0jv5v1o"
     return url
 
 def fetch_news(url):
+    author = ''
     response = requests.get(url)
     docs = []
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
         paragraphs = soup.find_all('p')
         article_text = ' '.join([para.get_text() for para in paragraphs])
-        
-        title = soup.title.string if soup.title else 'No title'
+
+        if article_text == '':
+            article_paragraphs = soup.find_all('p', class_='ssrcss-1q0x1qg-Paragraph e1jhz7w10')
+            article_text = "\n".join([p.get_text() for p in article_paragraphs])
+
+        # Metadata extraction (customize based on the website structure)
+        title = soup.title.string if soup.title else soup.find('h1', id='main-heading').find('span').get_text() if soup.find('h1', id='main-heading') else 'No title'
         author_tag = soup.find('a', class_='LinkWrapper_linkWrapper__DpMdK')
         author = author_tag.get_text(strip=True) if author_tag else 'No author found'
         
+
         metadata = {
             "url": url,
             "title": title,
             "author_name": author, 
+            # Add more metadata fields as necessary, e.g., author, publication date
         }
         
         doc = Document(page_content=article_text, metadata=metadata)   
@@ -36,3 +46,4 @@ def fetch_news(url):
     else:
         print("Failed with status code:", response.status_code)
         return []
+
